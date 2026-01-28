@@ -12,6 +12,8 @@ export default function StatGrid({ stats }) {
         icon={<Clock className="w-10 h-10 text-white/90" />}
         containerClassName="bg-emerald-700 shadow-md"
         valueClassName="text-white"
+        titleClassName="text-white/90"
+        subtitleClassName="text-white/80"
       />
 
       <StatCard
