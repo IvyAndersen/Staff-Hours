@@ -62,23 +62,23 @@ export default function StaffDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6 md:mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Users className="w-8 h-8 md:w-10 md:h-10 text-blue-400" />
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Staff Management</h1>
+          <Users className="w-8 h-8 md:w-10 md:h-10 text-emerald-600" />
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Staff Management</h1>
         </div>
-        <p className="text-slate-400 text-sm md:text-base">
+        <p className="text-slate-600 text-sm md:text-base">
           Monitor employee hours and performance metrics
         </p>
       </div>
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Input section */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-slate-700 shadow-xl">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Search className="w-5 h-5 text-blue-400" />
+        <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Search className="w-5 h-5 text-emerald-600" />
             Select Employee &amp; Period
           </h2>
 
@@ -112,7 +112,7 @@ export default function StaffDashboard() {
             <button
               onClick={handleCalculate}
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -130,7 +130,7 @@ export default function StaffDashboard() {
             <button
               onClick={handlePDFReport}
               disabled={timeEntries.length === 0 || !selectedEmployee}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              className="bg-white hover:bg-slate-50 border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-emerald-700 font-semibold py-3 px-6 rounded-lg shadow-sm transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <Download className="w-5 h-5" />
               Download PDF Report
@@ -139,7 +139,7 @@ export default function StaffDashboard() {
             <button
               onClick={handleMonthlyReport}
               disabled={loadingMonthly || !selectedMonth || !selectedYear}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              className="bg-emerald-800 hover:bg-emerald-900 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               {loadingMonthly ? (
                 <>
