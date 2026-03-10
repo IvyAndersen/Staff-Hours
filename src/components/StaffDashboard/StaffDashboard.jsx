@@ -4,6 +4,7 @@ import {
   Users,
   Search,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 
 import useStaffData from '../../hooks/useStaffData';
@@ -24,6 +25,7 @@ export default function StaffDashboard() {
     error,
     loading,
     loadingMonthly,
+    missingEmployees,
     setError,
     calculateHours,
     downloadMonthlyReport,
@@ -104,6 +106,25 @@ export default function StaffDashboard() {
           {error && (
             <div className="mt-4 bg-rose-500/10 border border-rose-500/50 rounded-lg p-3 flex items-center gap-2">
               <p className="text-rose-300 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Missing employees warning */}
+          {missingEmployees.length > 0 && (
+            <div className="mt-4 bg-amber-50 border border-amber-300 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <p className="text-amber-800 text-sm font-semibold">
+                  {missingEmployees.length} employee{missingEmployees.length > 1 ? 's were' : ' was'} excluded from the report (no data returned):
+                </p>
+              </div>
+              <ul className="ml-6 mt-1 space-y-0.5">
+                {missingEmployees.map((emp, i) => (
+                  <li key={i} className="text-amber-700 text-sm">
+                    • {emp.name} <span className="text-amber-500 text-xs">({emp.reason})</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
