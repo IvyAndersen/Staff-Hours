@@ -20,6 +20,7 @@ export default function useStaffData() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
+  const [missingEmployees, setMissingEmployees] = useState([]);
 
   const resetStats = () => {
     setStats({
@@ -113,6 +114,7 @@ export default function useStaffData() {
 
     setLoadingMonthly(true);
     setError('');
+    setMissingEmployees([]);
 
     try {
       const { startDate, endDate } = getMonthRange(year, month);
@@ -139,34 +141,47 @@ export default function useStaffData() {
               body: JSON.stringify(body),
             });
 
-            if (!response.ok) return null;
+            if (!response.ok) return { emp, result: null, reason: `HTTP ${response.status}` };
 
             const rawData = await response.json();
             const summary = Array.isArray(rawData) ? rawData[0] : rawData;
 
             if (summary && summary.entries && summary.entries.length > 0) {
               return {
-                ...emp,
-                stats: {
-                  totalHours: summary.totalHours || 0,
-                  totalHoursFormatted: shortenDuration(summary.totalHoursFormatted),
-                  totalPlannedHours: summary.totalPlannedHours || 0,
-                  overtimeHours: summary.overtimeHours || 0,
-                  workDays: summary.workDays || 0,
-                  averageShiftDuration: summary.averageShiftDuration || 0,
-                  totalBreakHours: summary.totalBreakHours || 0,
+                emp,
+                result: {
+                  ...emp,
+                  stats: {
+                    totalHours: summary.totalHours || 0,
+                    totalHoursFormatted: shortenDuration(summary.totalHoursFormatted),
+                    totalPlannedHours: summary.totalPlannedHours || 0,
+                    overtimeHours: summary.overtimeHours || 0,
+                    workDays: summary.workDays || 0,
+                    averageShiftDuration: summary.averageShiftDuration || 0,
+                    totalBreakHours: summary.totalBreakHours || 0,
+                  },
                 },
               };
             }
-            return null;
+            return { emp, result: null, reason: 'No entries found' };
           } catch (err) {
             console.error(`Error fetching data for ${emp.name}:`, err);
-            return null;
+            return { emp, result: null, reason: 'Fetch error' };
           }
         })
       );
 
-      const employeesWithData = allEmployeeData.filter(Boolean);
+      const failed = allEmployeeData
+        .filter(item => item.result === null)
+        .map(item => ({ name: item.emp.name, reason: item.reason }));
+
+      if (failed.length > 0) {
+        setMissingEmployees(failed);
+      }
+
+      const employeesWithData = allEmployeeData
+        .filter(item => item.result !== null)
+        .map(item => item.result);
 
       if (!employeesWithData.length) {
         setError('No employee data found for this period');
@@ -240,6 +255,7 @@ export default function useStaffData() {
     error,
     loading,
     loadingMonthly,
+    missingEmployees,
     setError,
     calculateHours,
     downloadMonthlyReport,
