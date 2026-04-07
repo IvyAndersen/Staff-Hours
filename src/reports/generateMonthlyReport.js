@@ -7,8 +7,6 @@ export function createMonthlyReportWindow({ employeesWithData, totals, monthName
     day: 'numeric',
   });
 
-  const printWindow = window.open('', '_blank');
-
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -281,6 +279,21 @@ export function createMonthlyReportWindow({ employeesWithData, totals, monthName
 </html>
   `;
 
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  const printWindow = window.open('', '_blank');
+
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  } else {
+    // Popup was blocked — fall back to downloading as an HTML file
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Monthly_Report_${monthName}_${year}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 }
