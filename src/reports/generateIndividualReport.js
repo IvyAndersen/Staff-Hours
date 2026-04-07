@@ -17,8 +17,6 @@ export function createIndividualReportWindow({ employee, monthName, year, stats,
   const feriepenger = baseSalary * 0.102;
   const realCost = baseSalary + aga + otp + feriepenger;
 
-  const printWindow = window.open('', '_blank');
-
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -282,6 +280,21 @@ export function createIndividualReportWindow({ employee, monthName, year, stats,
 </html>
   `;
 
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  const printWindow = window.open('', '_blank');
+
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  } else {
+    // Popup was blocked — fall back to downloading as an HTML file
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Staff_Report_${empName.replace(/\s+/g, '_')}_${monthName}_${year}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 }
