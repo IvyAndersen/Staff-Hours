@@ -1,6 +1,6 @@
 // src/hooks/useStaffData.js
-import { useState } from 'react';
-import { EMPLOYEES } from '../lib/employees';
+import { useState, useEffect } from 'react';
+import { EMPLOYEES as STATIC_EMPLOYEES } from '../lib/employees';
 import { WEBHOOKS, MONTHS } from '../lib/constants';
 import { getMonthRange, formatTime, shortenDuration } from '../lib/helpers';
 import { createMonthlyReportWindow } from '../reports/generateMonthlyReport';
@@ -21,6 +21,42 @@ export default function useStaffData() {
   const [loading, setLoading] = useState(false);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
   const [missingEmployees, setMissingEmployees] = useState([]);
+
+  // Employees are fetched live from Airtable (via our own /api/employees
+  // endpoint) so new hires show up automatically. If that fetch fails for
+  // any reason, we fall back to the bundled static list.
+  const [employees, setEmployees] = useState(STATIC_EMPLOYEES);
+  const [employeesLoading, setEmployeesLoading] = useState(true);
+  const [employeesError, setEmployeesError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadEmployees = async () => {
+      setEmployeesLoading(true);
+      setEmployeesError('');
+      try {
+        const response = await fetch('/api/employees');
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        const data = await response.json();
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setEmployees(data);
+        }
+      } catch (err) {
+        console.error('Falling back to static employee list:', err);
+        if (!cancelled) {
+          setEmployeesError('Could not load the live employee list from Airtable. Showing the last saved list.');
+        }
+      } finally {
+        if (!cancelled) setEmployeesLoading(false);
+      }
+    };
+
+    loadEmployees();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const resetStats = () => {
     setStats({
@@ -45,7 +81,7 @@ export default function useStaffData() {
     resetStats();
 
     try {
-      const empObj = EMPLOYEES.find(e => String(e.id) === String(employeeId));
+      const empObj = employees.find(e => String(e.id) === String(employeeId));
       const { startDate, endDate } = getMonthRange(year, month);
       const monthNumber = Number(month);
       const yearNumber = Number(year);
@@ -123,7 +159,7 @@ export default function useStaffData() {
       const monthName = MONTHS[monthNumber - 1];
 
       const allEmployeeData = await Promise.all(
-        EMPLOYEES.map(async (emp) => {
+        employees.map(async (emp) => {
           try {
             const body = {
               employeeId: emp.id,
@@ -237,7 +273,7 @@ export default function useStaffData() {
       return;
     }
 
-    const employee = EMPLOYEES.find(e => String(e.id) === String(employeeId));
+    const employee = employees.find(e => String(e.id) === String(employeeId));
     const monthName = MONTHS[Number(month) - 1];
 
     createIndividualReportWindow({
@@ -256,6 +292,9 @@ export default function useStaffData() {
     loading,
     loadingMonthly,
     missingEmployees,
+    employees,
+    employeesLoading,
+    employeesError,
     setError,
     calculateHours,
     downloadMonthlyReport,
