@@ -12,7 +12,7 @@ export const EMPLOYEES = [
   { id: 21, name: 'Victoria Tamas',                 role: 'Waiter', department: 'General', wage: 194, percentage: 20 },
   { id: 27, name: 'Elisabeth  Kilaas',              role: 'Waiter', department: 'General', wage: 205, percentage: 20 },
   { id: 29, name: 'Matilina Huart',                 role: 'Waiter', department: 'General', wage: 205, percentage: 20 },
-  { id: 30, name: 'Carrina Rosu',                   role: 'Waiter', department: 'General', wage: 205, percentage: 50 },
-  { id: 31, name: 'Natalia Sapian',                 role: 'Chef Assistant', department: 'General', wage: 205, percentage: 50 },
-  { id: 32, name: 'Carles Lleida Serra',             role: 'Waiter', department: 'General', wage: 205, percentage: 20 },
+  { id: 31, name: 'Carrina Rosu',                   role: 'Waiter', department: 'General', wage: 205, percentage: 50 },
+  { id: 32, name: 'Natalia Sapian',                 role: 'Chef Assistant', department: 'General', wage: 205, percentage: 50 },
+  { id: 33, name: 'Carles Lleida Serra',             role: 'Waiter', department: 'General', wage: 205, percentage: 20 },
 ];
