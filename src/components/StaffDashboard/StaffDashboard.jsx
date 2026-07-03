@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 
 import useStaffData from '../../hooks/useStaffData';
-import { EMPLOYEES } from '../../lib/employees';
 import { MONTHS, YEARS } from '../../lib/constants';
 
 import EmployeeSelect from './selectors/EmployeeSelect';
@@ -26,6 +25,9 @@ export default function StaffDashboard() {
     loading,
     loadingMonthly,
     missingEmployees,
+    employees,
+    employeesLoading,
+    employeesError,
     setError,
     calculateHours,
     downloadMonthlyReport,
@@ -36,7 +38,7 @@ export default function StaffDashboard() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('2025');
 
-  const selectedEmployeeObj = EMPLOYEES.find(
+  const selectedEmployeeObj = employees.find(
     e => String(e.id) === String(selectedEmployee)
   );
 
@@ -86,7 +88,7 @@ export default function StaffDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <EmployeeSelect
-              employees={EMPLOYEES}
+              employees={employees}
               value={selectedEmployee}
               onChange={setSelectedEmployee}
             />
@@ -101,6 +103,14 @@ export default function StaffDashboard() {
               onChange={setSelectedYear}
             />
           </div>
+
+          {/* Employee list sync warning */}
+          {employeesError && (
+            <div className="mt-4 bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <p className="text-amber-800 text-sm">{employeesError}</p>
+            </div>
+          )}
 
           {/* Error */}
           {error && (
