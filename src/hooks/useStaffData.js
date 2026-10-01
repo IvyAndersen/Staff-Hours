@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { EMPLOYEES as STATIC_EMPLOYEES } from '../lib/employees';
 import { WEBHOOKS, MONTHS } from '../lib/constants';
-import { getMonthRange, formatTime, shortenDuration, mapWithConcurrency, fetchWithRetry } from '../lib/helpers';
+import { getMonthRange, formatTime, shortenDuration, mapWithConcurrency, fetchWithRetry, retryAsync } from '../lib/helpers';
 import { createMonthlyReportWindow } from '../reports/generateMonthlyReport';
 import { createIndividualReportWindow } from '../reports/generateIndividualReport';
 
@@ -176,16 +176,20 @@ export default function useStaffData() {
               monthName,
             };
 
-            const response = await fetchWithRetry(WEBHOOKS.CALCULATE_HOURS, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body),
+            // Retry the whole request + JSON parse: a rate-limited n8n run can
+            // come back as a network error or an empty body, not just a 429.
+            const summary = await retryAsync(async () => {
+              const response = await fetch(WEBHOOKS.CALCULATE_HOURS, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+              });
+              if (!response.ok) {
+                throw Object.assign(new Error(`HTTP ${response.status}`), { httpStatus: response.status });
+              }
+              const rawData = await response.json();
+              return Array.isArray(rawData) ? rawData[0] : rawData;
             });
-
-            if (!response.ok) return { emp, result: null, reason: `HTTP ${response.status}` };
-
-            const rawData = await response.json();
-            const summary = Array.isArray(rawData) ? rawData[0] : rawData;
 
             if (summary && summary.entries && summary.entries.length > 0) {
               return {
@@ -207,7 +211,7 @@ export default function useStaffData() {
             return { emp, result: null, reason: 'No entries found' };
           } catch (err) {
             console.error(`Error fetching data for ${emp.name}:`, err);
-            return { emp, result: null, reason: 'Fetch error' };
+            return { emp, result: null, reason: err.httpStatus ? `HTTP ${err.httpStatus}` : 'Fetch error' };
           }
         }
       );

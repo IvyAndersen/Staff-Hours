@@ -66,15 +66,37 @@ export const mapWithConcurrency = async (items, limit, fn) => {
   return results;
 };
 
-// fetch that backs off and retries on 429 / 5xx. Returns the last response
-// once retries are exhausted so callers can still inspect the status.
+// Runs `fn`, retrying with exponential backoff whenever it throws. Gives
+// the n8n webhook another chance when a run fails on Airtable's rate limit
+// and the browser sees a network error or an empty/invalid JSON body.
+export const retryAsync = async (fn, { retries = 4, baseDelayMs = 2000 } = {}) => {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn(attempt);
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+    }
+  }
+};
+
+// fetch that backs off and retries on 429 / 5xx and on thrown network errors.
+// Returns the last response once retries are exhausted so callers can still
+// inspect the status; rethrows the last error if every attempt threw.
 export const fetchWithRetry = async (
   url,
   options,
   { retries = 4, baseDelayMs = 2000, fetchImpl = fetch } = {}
 ) => {
   for (let attempt = 0; ; attempt++) {
-    const response = await fetchImpl(url, options);
+    let response;
+    try {
+      response = await fetchImpl(url, options);
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+      continue;
+    }
     const retryable = response.status === 429 || response.status >= 500;
     if (response.ok || !retryable || attempt >= retries) return response;
     await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
