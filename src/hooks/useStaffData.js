@@ -6,7 +6,7 @@ import { getMonthRange, formatTime, shortenDuration, mapWithConcurrency, fetchWi
 import { createMonthlyReportWindow } from '../reports/generateMonthlyReport';
 import { createIndividualReportWindow } from '../reports/generateIndividualReport';
 
-const MONTHLY_REPORT_CONCURRENCY = 2;
+const MONTHLY_REPORT_CONCURRENCY = 1;
 
 export default function useStaffData() {
   const [stats, setStats] = useState({

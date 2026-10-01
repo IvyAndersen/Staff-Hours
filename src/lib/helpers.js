@@ -71,7 +71,7 @@ export const mapWithConcurrency = async (items, limit, fn) => {
 export const fetchWithRetry = async (
   url,
   options,
-  { retries = 3, baseDelayMs = 1000, fetchImpl = fetch } = {}
+  { retries = 4, baseDelayMs = 2000, fetchImpl = fetch } = {}
 ) => {
   for (let attempt = 0; ; attempt++) {
     const response = await fetchImpl(url, options);
