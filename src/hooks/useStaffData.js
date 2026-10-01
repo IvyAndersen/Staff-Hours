@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { EMPLOYEES as STATIC_EMPLOYEES } from '../lib/employees';
 import { WEBHOOKS, MONTHS } from '../lib/constants';
-import { getMonthRange, formatTime, shortenDuration } from '../lib/helpers';
+import { getMonthRange, formatTime, shortenDuration, mapWithConcurrency, fetchWithRetry } from '../lib/helpers';
 import { createMonthlyReportWindow } from '../reports/generateMonthlyReport';
 import { createIndividualReportWindow } from '../reports/generateIndividualReport';
+
+const MONTHLY_REPORT_CONCURRENCY = 2;
 
 export default function useStaffData() {
   const [stats, setStats] = useState({
@@ -97,7 +99,7 @@ export default function useStaffData() {
         monthName,
       };
 
-      const response = await fetch(WEBHOOKS.CALCULATE_HOURS, {
+      const response = await fetchWithRetry(WEBHOOKS.CALCULATE_HOURS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -158,8 +160,11 @@ export default function useStaffData() {
       const yearNumber = Number(year);
       const monthName = MONTHS[monthNumber - 1];
 
-      const allEmployeeData = await Promise.all(
-        employees.map(async (emp) => {
+      // Limited concurrency: all employees at once trips Airtable's 429 limit.
+      const allEmployeeData = await mapWithConcurrency(
+        employees,
+        MONTHLY_REPORT_CONCURRENCY,
+        async (emp) => {
           try {
             const body = {
               employeeId: emp.id,
@@ -171,7 +176,7 @@ export default function useStaffData() {
               monthName,
             };
 
-            const response = await fetch(WEBHOOKS.CALCULATE_HOURS, {
+            const response = await fetchWithRetry(WEBHOOKS.CALCULATE_HOURS, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(body),
@@ -204,7 +209,7 @@ export default function useStaffData() {
             console.error(`Error fetching data for ${emp.name}:`, err);
             return { emp, result: null, reason: 'Fetch error' };
           }
-        })
+        }
       );
 
       const failed = allEmployeeData
