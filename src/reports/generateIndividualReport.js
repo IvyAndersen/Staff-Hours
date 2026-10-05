@@ -1,4 +1,5 @@
 // src/reports/generateIndividualReport.js
+import { costBreakdown } from '../lib/helpers';
 
 export function createIndividualReportWindow({ employee, monthName, year, stats, timeEntries }) {
   const empName = employee ? employee.name : 'Unknown';
@@ -8,14 +9,8 @@ export function createIndividualReportWindow({ employee, monthName, year, stats,
     day: 'numeric',
   });
 
-  const totalHoursNumeric =
-    parseFloat(stats.totalHoursFormatted.replace(' hrs ', '.').replace(' min', '')) || 0;
-
-  const baseSalary = totalHoursNumeric * (employee?.wage || 0);
-  const aga = baseSalary * 0.141;
-  const otp = baseSalary * 0.02;
-  const feriepenger = baseSalary * 0.102;
-  const realCost = baseSalary + aga + otp + feriepenger;
+  // Use the decimal total: parsing "112 hrs 54 min" as 112.54 under-counted pay.
+  const { baseSalary, aga, otp, feriepenger, realCost } = costBreakdown(stats.totalHours, employee?.wage);
 
   const htmlContent = `
 <!DOCTYPE html>

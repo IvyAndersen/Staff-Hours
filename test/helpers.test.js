@@ -72,3 +72,16 @@ test('retryAsync retries when the callback throws (e.g. bad JSON body)', async (
   assert.equal(out, 'ok');
   assert.equal(calls, 2);
 });
+
+test('costBreakdown uses decimal hours and the 1.263 employer factor', async () => {
+  const { costBreakdown } = await import('../src/lib/helpers.js');
+  const c = costBreakdown(112.9, 205);
+  assert.equal(Math.round(c.baseSalary), 23145);
+  assert.equal(Math.round(c.realCost), Math.round(112.9 * 205 * 1.263));
+});
+
+test('formatHoursMinutes converts decimal hours', async () => {
+  const { formatHoursMinutes } = await import('../src/lib/helpers.js');
+  assert.equal(formatHoursMinutes(112.9), '112 hrs 54 min');
+  assert.equal(formatHoursMinutes(0), '0 hrs 0 min');
+});

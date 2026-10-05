@@ -102,3 +102,18 @@ export const fetchWithRetry = async (
     await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
   }
 };
+
+// Employer cost on top of base pay: AGA 14.1%, OTP 2%, Feriepenger 10.2%.
+export const costBreakdown = (totalHours, wage) => {
+  const baseSalary = (Number(totalHours) || 0) * (Number(wage) || 0);
+  const aga = baseSalary * 0.141;
+  const otp = baseSalary * 0.02;
+  const feriepenger = baseSalary * 0.102;
+  return { baseSalary, aga, otp, feriepenger, realCost: baseSalary + aga + otp + feriepenger };
+};
+
+// 112.9 -> "112 hrs 54 min"
+export const formatHoursMinutes = (decimalHours) => {
+  const totalMin = Math.round((Number(decimalHours) || 0) * 60);
+  return `${Math.floor(totalMin / 60)} hrs ${totalMin % 60} min`;
+};
