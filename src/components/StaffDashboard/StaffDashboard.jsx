@@ -5,6 +5,7 @@ import {
   Search,
   Download,
   AlertTriangle,
+  FileArchive,
 } from 'lucide-react';
 
 import useStaffData from '../../hooks/useStaffData';
@@ -24,6 +25,7 @@ export default function StaffDashboard() {
     error,
     loading,
     loadingMonthly,
+    progress,
     missingEmployees,
     employees,
     employeesLoading,
@@ -31,6 +33,7 @@ export default function StaffDashboard() {
     setError,
     calculateHours,
     downloadMonthlyReport,
+    downloadAllIndividualReports,
     downloadPDFReport,
   } = useStaffData();
 
@@ -52,6 +55,13 @@ export default function StaffDashboard() {
 
   const handleMonthlyReport = () => {
     downloadMonthlyReport({
+      month: selectedMonth,
+      year: selectedYear,
+    });
+  };
+
+  const handleAllIndividualReports = () => {
+    downloadAllIndividualReports({
       month: selectedMonth,
       year: selectedYear,
     });
@@ -120,16 +130,16 @@ export default function StaffDashboard() {
           )}
 
           {/* Missing employees warning */}
-          {missingEmployees.length > 0 && (
+          {missingEmployees.some(e => !e.noData) && (
             <div className="mt-4 bg-amber-50 border border-amber-300 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <p className="text-amber-800 text-sm font-semibold">
-                  {missingEmployees.length} employee{missingEmployees.length > 1 ? 's were' : ' was'} excluded from the report (no data returned):
+                  Could not load hours for these employees, so they are NOT in the report. Run it again:
                 </p>
               </div>
               <ul className="ml-6 mt-1 space-y-0.5">
-                {missingEmployees.map((emp, i) => (
+                {missingEmployees.filter(e => !e.noData).map((emp, i) => (
                   <li key={i} className="text-amber-700 text-sm">
                     • {emp.name} <span className="text-amber-500 text-xs">({emp.reason})</span>
                   </li>
@@ -137,9 +147,14 @@ export default function StaffDashboard() {
               </ul>
             </div>
           )}
+          {missingEmployees.some(e => e.noData) && (
+            <p className="mt-3 text-slate-500 text-sm">
+              No hours this month: {missingEmployees.filter(e => e.noData).map(e => e.name.trim()).join(', ')}
+            </p>
+          )}
 
           {/* Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
             <button
               onClick={handleCalculate}
               disabled={loading}
@@ -175,7 +190,7 @@ export default function StaffDashboard() {
               {loadingMonthly ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Generating...
+                  {progress ? `Loading ${progress.done}/${progress.total}...` : 'Generating...'}
                 </>
               ) : (
                 <>
@@ -183,6 +198,15 @@ export default function StaffDashboard() {
                   Monthly Report (All Staff)
                 </>
               )}
+            </button>
+
+            <button
+              onClick={handleAllIndividualReports}
+              disabled={loadingMonthly || !selectedMonth || !selectedYear}
+              className="bg-white hover:bg-slate-50 border border-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed text-emerald-800 font-semibold py-3 px-6 rounded-lg shadow-sm transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <FileArchive className="w-5 h-5" />
+              All Individual PDFs (.zip)
             </button>
           </div>
         </div>
